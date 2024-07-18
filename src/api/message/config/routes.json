@@ -1,0 +1,12 @@
+{
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/webhook/message",
+      "handler": "message.webhook.handleWebhook",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}
