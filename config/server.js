@@ -8,3 +8,13 @@ module.exports = ({ env }) => ({
     populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
   },
 });
+
+
+module.exports = ({ strapi }) => {
+  return {
+    async bootstrap() {
+      const socketService = require('../src/extensions/socket');
+      socketService.initialize(strapi);
+    },
+  };
+};
