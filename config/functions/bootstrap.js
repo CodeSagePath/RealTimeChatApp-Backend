@@ -1,37 +1,55 @@
 'use strict';
 
-module.exports = async () => {
-  const io = require('socket.io')(strapi.server, {
+const io = require('socket.io');
+
+module.exports = async (strapi) => {
+  // Initialize Socket.io
+  const socketServer = io(strapi.server, {
     cors: {
-      origin: 'http://localhost:3000', // your frontend URL
+      origin: 'http://localhost:3000',
       methods: ['GET', 'POST'],
     },
   });
 
-  const users = {};
+  // Handle new connections
+  socketServer.on('connection', (socket) => {
+    console.log('A user connected');
 
-  io.on('connection', (socket) => {
-    console.log('a user connected');
-
-    socket.on('register', (username) => {
-      users[socket.id] = username;
-      io.emit('activeUsers', Object.values(users));
-    });
-
-    socket.on('sendMessage', async (message) => {
-      const newMessage = await strapi.services.message.create({
-        content: message.content,
-        username: message.username,
+    // Join a room
+    socket.on('joinRoom', ({ username, room }) => {
+      socket.join(room);
+      console.log(`${username} joined room: ${room}`);
+      socketServer.to(room).emit('message', {
+        username: 'admin',
+        content: `${username} has joined the room.`,
       });
-      io.emit('message', newMessage);
     });
 
+    // Handle new messages
+    socket.on('sendMessage', async (message) => {
+      try {
+        // Save message to database
+        const newMessage = await strapi.service('api::message.message').create({
+          data: {
+            content: message.content,
+            username: message.username,
+            room: message.room,
+            timestamp: new Date(),
+          },
+        });
+
+        // Broadcast message to all clients in the room
+        socketServer.to(message.room).emit('message', newMessage);
+      } catch (error) {
+        console.error('Error saving message:', error);
+      }
+    });
+
+    // Handle disconnect
     socket.on('disconnect', () => {
-      delete users[socket.id];
-      io.emit('activeUsers', Object.values(users));
-      console.log('user disconnected');
+      console.log('User disconnected');
     });
   });
 
-  strapi.io = io;
+  strapi.io = socketServer; 
 };

@@ -4,25 +4,43 @@
  * message router
  */
 
-const { createCoreRouter } = require('@strapi/strapi').factories;
-
-const defaultRouter = createCoreRouter('api::message.message');
-
-const customRoutes = [
-  {
-    method: 'POST',
-    path: '/webhook/message',
-    handler: 'message.webhook',
-    config: {
-      policies: [],
-    },
-  },
-];
-
 module.exports = {
-  ...defaultRouter,
   routes: [
-    ...defaultRouter.routes,
-    ...customRoutes,
+    {
+      method: 'POST',
+      path: '/messages',
+      handler: 'message.create',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/messages',
+      handler: 'message.find',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/messages/:id',
+      handler: 'message.findOne',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/messages/room/:room',
+      handler: 'message.findByRoom',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

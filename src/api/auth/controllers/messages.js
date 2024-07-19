@@ -1,28 +1,25 @@
 'use strict';
 
-const { sanitizeEntity } = require('strapi-utils');
+/**
+ * message controller
+ */
 
-module.exports = {
+const { createCoreController } = require('@strapi/strapi').factories;
+
+module.exports = createCoreController('api::message.message', ({ strapi }) => ({
   async create(ctx) {
-    const { content, username } = ctx.request.body.data; // Access the wrapped data object
+    const { content, room, username } = ctx.request.body.data;
 
-    if (!content || !username) {
-      return ctx.throw(400, 'Please provide content and username');
-    }
-
-    const message = await strapi.services.message.create({
-      content,
-      username,
-      timestamp: new Date(),
+    const newMessage = await strapi.service('api::message.message').create({
+      data: {
+        content,
+        room,
+        username,
+      },
     });
 
-    strapi.io.emit('message', sanitizeEntity(message, { model: strapi.models.message }));
+    strapi.io.to(room).emit('message', newMessage);
 
-    return sanitizeEntity(message, { model: strapi.models.message });
+    return newMessage;
   },
-
-  async find(ctx) {
-    const messages = await strapi.services.message.find();
-    return messages.map(entity => sanitizeEntity(entity, { model: strapi.models.message }));
-  },
-};
+}));

@@ -20,6 +20,8 @@
     "react-dom": "^18.0.0",
     "react-router-dom": "5.3.4",
     "socket.io": "^4.7.5",
+    "strapi": "^3.6.11",
+    "strapi-utils": "^3.6.11",
     "styled-components": "5.3.3"
   },
   "author": {
